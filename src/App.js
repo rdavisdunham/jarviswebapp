@@ -5,6 +5,7 @@ import axios from 'axios';
 const App = () => {
   const [audioBlob, setAudioBlob] = useState(null);
   const [mediaRecorderKey, setMediaRecorderKey] = useState(Date.now());
+  const [textOutput, setTextOutput] = useState('');
 
   const handleStop = (blobUrl, blob) => {
     setAudioBlob(blob);
@@ -27,6 +28,17 @@ const App = () => {
     }
   };
 
+  const handleGetTextOutput = async () => {
+    try {
+      const response = await axios.get('http://192.168.1.189:3000/text-output');
+      const textOutput = response.data;
+      console.log('Text output from server:', textOutput);
+      setTextOutput(textOutput); // Update the textOutput state with the received data
+    } catch (error) {
+      console.error('Error retrieving text output:', error);
+    }
+  };
+
   return (
     <div>
       <ReactMediaRecorder
@@ -44,6 +56,14 @@ const App = () => {
       <button onClick={handleUpload} disabled={!audioBlob}>
         Upload Audio
       </button>
+      <button onClick={handleGetTextOutput}>Get Text Output</button>
+      <textarea
+        value={textOutput}
+        readOnly
+        rows={10}
+        cols={50}
+        style={{ marginTop: '10px' }}
+      />
     </div>
   );
 };
