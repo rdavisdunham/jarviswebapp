@@ -1,25 +1,51 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import { ReactMediaRecorder } from 'react-media-recorder';
+import axios from 'axios';
 
-function App() {
+const App = () => {
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [mediaRecorderKey, setMediaRecorderKey] = useState(Date.now());
+
+  const handleStop = (blobUrl, blob) => {
+    setAudioBlob(blob);
+    setMediaRecorderKey(Date.now()); // Reset the ReactMediaRecorder component
+  };
+
+  const handleUpload = async () => {
+    if (audioBlob) {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.webm');
+
+      try {
+        await axios.post('http://192.168.1.189:3000/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        console.log('Audio uploaded successfully');
+      } catch (error) {
+        console.error('Error uploading audio:', error);
+      }
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <ReactMediaRecorder
+        key={mediaRecorderKey} // Use a unique key to force remount
+        audio
+        onStop={handleStop}
+        render={({ status, startRecording, stopRecording }) => (
+          <div>
+            <p>{status}</p>
+            <button onClick={startRecording}>Start Recording</button>
+            <button onClick={stopRecording}>Stop Recording</button>
+          </div>
+        )}
+      />
+      <button onClick={handleUpload} disabled={!audioBlob}>
+        Upload Audio
+      </button>
     </div>
   );
-}
+};
 
 export default App;
