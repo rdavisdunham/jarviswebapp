@@ -7,6 +7,7 @@ const App = () => {
   const [textOutput, setTextOutput] = useState([]); // Now an array of messages
   const [isRecording, setIsRecording] = useState(false); // New state to track recording status
   const messagesEndRef = useRef(null); // Create a ref for the messages container
+  const [userInput, setUserInput] = useState('');
 
   // Scroll to the bottom function
   const scrollToBottom = () => {
@@ -17,6 +18,19 @@ const App = () => {
   useEffect(() => {
     scrollToBottom();
   }, [textOutput]);
+
+  const sendTextMessage = async () => {
+    if (userInput.trim() !== '') {
+      try {
+        setTextOutput(prevTextOutput => [...prevTextOutput, `User: ${userInput}`]); // Add user's input to textOutput
+        await axios.post('http://192.168.1.189:3000/text-message', { message: userInput });
+        setUserInput(''); // Clear the input field after sending
+        pollForTextOutput(); // Start polling for the response
+      } catch (error) {
+        console.error('Error sending text message:', error);
+      }
+    }
+  };
 
   const handleStop = async (blobUrl, blob) => {
     setMediaRecorderKey(Date.now()); // Reset the ReactMediaRecorder component
@@ -111,7 +125,7 @@ const App = () => {
           <div key={index}>
             {message.split('\n').reduce((acc, line, lineIndex) => {
               // Determine the color based on the line prefix or carry over the previous color
-              const color = line.startsWith('Transcribed Text:') ? 'black' :
+              const color = line.startsWith('User:') ? 'black' :
                             line.startsWith('Model:') ? 'blue' : acc.prevColor;
 
               acc.lines.push(
@@ -134,6 +148,16 @@ const App = () => {
           </div>
         ))}
         <div ref={messagesEndRef} /> {/* Invisible element at the end of the messages */}
+      </div>
+      <div style={{ display: 'flex', marginTop: '10px' }}>
+        <input
+          type="text"
+          value={userInput}
+          onChange={(e) => setUserInput(e.target.value)}
+          placeholder="Type your message..."
+          style={{ flex: 1, marginRight: '10px' }}
+        />
+        <button onClick={sendTextMessage}>Send</button>
       </div>
     </div>
   );
