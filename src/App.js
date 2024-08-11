@@ -93,6 +93,12 @@ const App = () => {
     setIsRecording(!isRecording); // Toggle the recording status
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      sendTextMessage();
+    }
+  };
+
   return (
     <div>
       <ReactMediaRecorder
@@ -154,6 +160,7 @@ const App = () => {
           type="text"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
+          onKeyDown={handleKeyDown} // Add this line
           placeholder="Type your message..."
           style={{ flex: 1, marginRight: '10px' }}
         />
